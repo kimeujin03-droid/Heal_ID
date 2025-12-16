@@ -1,0 +1,599 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Patient Management</title>
+    <!-- 폰트 및 아이콘 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-blue: #3498db;
+            --primary-dark: #2980b9;
+            --urgent-red: #e74c3c;
+            --bg-color: #eaeff2;
+            --header-bg: #ffffff;
+            --header-border: #e0e0e0;
+            --text-color: #2c3e50;
+            --text-gray: #7f8c8d;
+            --border-color: #dcdcdc;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background: var(--bg-color); 
+            margin: 0; 
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* --- 스플래시 스크린 --- */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #f0f8ff 0%, #d3e8f7 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 3000; animation: fadeOut 0.8s ease-out 3.2s forwards;
+        }
+        .splash-content { text-align: center; animation: slideUpFade 1s ease-out; }
+        .mascot-img { 
+            width: 220px; height: auto; margin-bottom: 25px; 
+            animation: float 3s ease-in-out infinite; 
+            filter: drop-shadow(0 10px 15px rgba(52, 152, 219, 0.2)); 
+        }
+        .splash-title { 
+            font-size: 2.2rem; 
+            color: #5f7c8d; 
+            font-weight: 700; 
+            margin-bottom: 10px; 
+            line-height: 1.2;
+        }
+        .splash-highlight { color: var(--primary-blue); }
+        .splash-desc { 
+            font-size: 1.1rem; 
+            color: #7f8c8d; 
+            font-weight: 400; 
+            line-height: 1.5; 
+        }
+        .splash-loader-container { width: 240px; height: 6px; background: #c3e0f5; border-radius: 10px; margin-top: 40px; overflow: hidden; position: relative; margin-left: auto; margin-right: auto; }
+        .splash-loader-bar { position: absolute; left: 0; top: 0; height: 100%; width: 100%; background: var(--primary-blue); border-radius: 10px; animation: loading 2.0s ease-in-out forwards; transform-origin: left; }
+
+        @keyframes loading { 0% { transform: scaleX(0); } 100% { transform: scaleX(1); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-15px); } }
+        @keyframes slideUpFade { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
+
+        /* --- 헤더 --- */
+        header { 
+            background: var(--header-bg); 
+            padding: 20px 40px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03); 
+            display: flex; 
+            flex-direction: row; 
+            justify-content: space-between; 
+            align-items: center;
+            border-bottom: 1px solid var(--header-border);
+        }
+        
+        .header-branding { display: flex; align-items: center; gap: 15px; }
+        .header-icon { font-size: 2.4rem; color: var(--urgent-red); display: flex; align-items: center; justify-content: center; }
+        .header-titles { display: flex; flex-direction: column; justify-content: center; }
+        .brand-name { font-size: 1.6rem; font-weight: 800; color: var(--primary-blue); line-height: 1.1; }
+        .brand-subtitle { font-size: 0.9rem; color: #7f8c8d; font-weight: 700; letter-spacing: 0.5px; }
+        .header-right { font-size: 0.95rem; color: #7f8c8d; font-weight: 500; }
+
+        /* --- 메인 컨테이너 --- */
+        .main-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+
+        .welcome-text { text-align: center; margin-bottom: 60px; }
+        .welcome-text h1 { margin: 0 0 15px 0; font-size: 2.4rem; color: #2c3e50; letter-spacing: -0.5px; }
+        .welcome-text p { color: #7f8c8d; font-size: 1.1rem; font-weight: 400; }
+
+        .cards-wrapper { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; width: 100%; max-width: 900px; }
+
+        .action-card {
+            background: white; flex: 1; min-width: 320px; border-radius: 24px; padding: 60px 40px;
+            text-align: center; box-shadow: var(--card-shadow); transition: all 0.3s ease; 
+            border: 1px solid white; cursor: pointer; position: relative; overflow: hidden;
+        }
+        .action-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(52, 152, 219, 0.15); }
+
+        .icon-wrapper { width: 90px; height: 90px; border-radius: 24px; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; font-size: 2.2rem; }
+        .card-scan .icon-wrapper { background: #fdf2f2; color: #e74c3c; }
+        .card-register .icon-wrapper { background: #eff6fa; color: #3498db; }
+
+        .card-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 15px; color: #2c3e50; }
+        .card-desc { color: #95a5a6; font-size: 1rem; line-height: 1.5; margin-bottom: 40px; height: 48px; }
+
+        .btn-card { padding: 12px 40px; border-radius: 50px; background: white; border: 2px solid #e0e0e0; color: #555; font-weight: 700; font-size: 1rem; transition: all 0.2s ease; }
+        .card-scan:hover .btn-card { border-color: var(--urgent-red); color: var(--urgent-red); }
+        .card-register:hover .btn-card { border-color: var(--primary-blue); color: var(--primary-blue); }
+
+        /* --- 모달 공통 스타일 --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(3px); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 40px; border-radius: 16px; width: 90%; max-width: 480px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); animation: modalFadeIn 0.3s ease-out; text-align: center; position: relative; }
+        @keyframes modalFadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal-title { font-size: 1.4rem; font-weight: 700; color: #333; margin-bottom: 10px; }
+        .modal-subtitle { font-size: 1rem; color: #7f8c8d; margin-bottom: 30px; font-weight: 400; }
+        
+        .input-label { text-align: left; display: block; font-weight: 700; color: #333; margin-bottom: 8px; font-size: 0.95rem; }
+        .styled-input { width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s; box-sizing: border-box; margin-bottom: 20px; }
+        .styled-input:focus { border-color: var(--primary-blue); border-width: 2px; padding: 13px; }
+
+        .modal-btn-row { display: flex; gap: 10px; width: 100%; margin-top: 10px; }
+        .btn-modal-action { flex: 1; padding: 14px; border-radius: 8px; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; }
+        .btn-cancel { background: #ecf0f1; color: #555; }
+        .btn-confirm { background: var(--primary-blue); color: white; }
+        .btn-confirm:hover { background: var(--primary-dark); }
+        .bottom-link { display: inline-block; margin-top: 25px; color: #95a5a6; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
+
+        /* 정보 확인 모달 */
+        .info-box { background: #f8f9fa; border-radius: 8px; padding: 20px; text-align: left; margin-bottom: 20px; }
+        .info-header { color: var(--primary-blue); font-weight: 700; font-size: 0.95rem; margin-bottom: 10px; }
+        .info-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; color: #333; font-weight: 500; }
+        .info-row i { width: 20px; text-align: center; color: #555; }
+        .confirm-question { color: #7f8c8d; font-size: 0.95rem; margin-bottom: 30px; }
+
+        /* 수동 등록 모달 */
+        .manual-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; }
+        .form-group { text-align: left; margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; color: #555; }
+        .form-select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 1rem; }
+
+        /* 비디오 & 로딩 */
+        #video-container { background: black; border-radius: 12px; overflow: hidden; border: none; display: flex; justify-content: center; align-items: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        video { display: block; transform: scaleX(-1); max-width: 100%; max-height: 70vh; object-fit: contain; }
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; }
+        .spinner { width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-blue); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- 스플래시 스크린 -->
+    <div id="splash-screen">
+        <div class="splash-content">
+            <img src="{{ url_for('static', filename='mascot.jpg') }}" onerror="this.src='https://placehold.co/220x220?text=Bear+Mascot'" alt="Heal ID Mascot" class="mascot-img">
+            <div class="splash-title">
+                <span class="splash-highlight">Heal</span>ing <span class="splash-highlight">Id</span>entity
+            </div>
+            <div class="splash-desc">
+                환자의 정체성을 올바르게 확인하고<br>
+                그에 맞는 치유를 제공합니다.
+            </div>
+        </div>
+        <div class="splash-loader-container"><div class="splash-loader-bar"></div></div>
+    </div>
+
+    <!-- 헤더 -->
+    <header>
+        <div class="header-branding">
+            <div class="header-icon"><i class="fas fa-siren-on"></i></div>
+            <div class="header-titles">
+                <div class="brand-name">Heal ID</div>
+                <div class="brand-subtitle">EPM System</div>
+            </div>
+        </div>
+        <div class="header-right">Emergency Patient Management</div>
+    </header>
+
+    <!-- 메인 컨텐츠 -->
+    <div class="main-container">
+        <div class="welcome-text">
+            <h1>응급 환자 관리 시스템</h1>
+            <p>신속한 환자 식별과 등록을 지원합니다.</p>
+        </div>
+
+        <div class="cards-wrapper">
+            <div class="action-card card-scan" onclick="startCamera('identify')">
+                <div class="icon-wrapper"><i class="fas fa-expand"></i></div>
+                <div class="card-title">환자 조회 (Scan)</div>
+                <div class="card-desc">안면 인식을 통해<br>등록된 환자 정보를 즉시 조회합니다.</div>
+                <button class="btn-card">스캔 시작</button>
+            </div>
+
+            <div class="action-card card-register" onclick="openIdInputModal()">
+                <div class="icon-wrapper"><i class="fas fa-user-plus"></i></div>
+                <div class="card-title">신규 환자 등록</div>
+                <div class="card-desc">새로운 환자 정보를<br>FHIR 서버에 등록하고 얼굴을 학습합니다.</div>
+                <button class="btn-card">등록 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 1: 환자 ID 입력 -->
+    <div id="id-input-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title">환자 ID 입력</div>
+            <div class="modal-subtitle">기존 환자라면 ID를 입력하여 얼굴을 추가합니다.</div>
+
+            <label class="input-label">환자 ID (Patient ID)</label>
+            <input type="text" id="input-patient-id" class="styled-input" placeholder="예: 12345" onkeypress="if(event.key==='Enter') verifyAndShowInfo()">
+
+            <div class="modal-btn-row">
+                <button class="btn-modal-action btn-cancel" onclick="closeModal('id-input-modal')">취소</button>
+                <button class="btn-modal-action btn-confirm" onclick="verifyAndShowInfo()">확인</button>
+            </div>
+
+            <div class="bottom-link" onclick="openManualRegisterModal()">
+                ID를 모르는 신규 환자입니까? (새로 생성)
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 2: 정보 확인 -->
+    <div id="info-confirm-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-title" style="margin-bottom: 30px;">정보 확인</div>
+            
+            <div class="info-box">
+                <div class="info-header">기존 ID 확인</div>
+                <div class="info-row"><i class="far fa-id-card"></i> <span id="confirm-id-text">ID: -</span></div>
+                <div class="info-row"><i class="far fa-user"></i> <span id="confirm-name-text">이름: 확인 중...</span></div>
+            </div>
+
+            <div class="confirm-question">위 정보로 얼굴 데이터 수집을 시작하시겠습니까?</div>
+
+            <div class="modal-btn-row">
+                <button class="btn-modal-action btn-cancel" onclick="closeModal('info-confirm-modal')">취소</button>
+                <button class="btn-modal-action btn-confirm" onclick="proceedToCamera()">촬영 시작</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 모달 3: 수동 등록 -->
+    <div id="manual-register-modal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-title" style="color: var(--urgent-red);">신규 환자 생성</div>
+            <div class="modal-subtitle">기본 정보를 입력하여 ID를 생성합니다.</div>
+            
+            <div class="manual-form-grid">
+                <div class="form-group">
+                    <label>이름 (Name)</label>
+                    <input type="text" id="manual-name" class="styled-input" placeholder="성과 이름을 띄어서 써 주세요" style="margin-bottom:0;">
+                </div>
+                <div class="form-group">
+                    <label>성별 (Gender)</label>
+                    <select id="manual-gender" class="form-select styled-input" style="margin-bottom:0;">
+                        <option value="female">여성</option>
+                        <option value="male">남성</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>생년월일 (Birth)</label>
+                    <input type="date" id="manual-birth" class="styled-input" style="margin-bottom:0;">
+                </div>
+                
+                <div class="form-group">
+                    <label>혈액형 (Blood Type)</label>
+                    <div style="display: flex; gap: 5px;">
+                        <select id="manual-blood-rh" class="form-select styled-input" style="flex: 1; margin-bottom:0;">
+                            <option value="+">RH+</option>
+                            <option value="-">RH-</option>
+                            <option value="">모름</option>
+                        </select>
+                        <select id="manual-blood-abo" class="form-select styled-input" style="flex: 1; margin-bottom:0;">
+                            <option value="A">A형</option>
+                            <option value="B">B형</option>
+                            <option value="AB">AB형</option>
+                            <option value="O">O형</option>
+                            <option value="">모름</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>도시 (City)</label>
+                    <input type="text" id="manual-city" class="styled-input" placeholder="예: 제주" style="margin-bottom:0;">
+                </div>
+                <div class="form-group">
+                    <label>주소 (Address)</label>
+                    <input type="text" id="manual-address" class="styled-input" placeholder="예: 제주 시청로 1" style="margin-bottom:0;">
+                </div>
+                <div class="form-group">
+                    <label>전화번호 (Phone)</label>
+                    <input type="text" id="manual-phone" class="styled-input" placeholder="예: 01012345678" style="margin-bottom:0;">
+                </div>
+                 <div class="form-group">
+                     <label>임신 여부 (Pregnancy)</label>
+                    <select id="manual-preg" class="form-select styled-input" style="margin-bottom:0;">
+                        <option value="N/A">해당 없음</option>
+                        <option value="Pregnancy">임신 중 (Pregnant)</option>
+                        <option value="Unknown">확인 필요</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label>특이사항 (알레르기, 약물)</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <input type="text" id="manual-allergy" class="styled-input" placeholder="알레르기" style="margin-bottom:0;">
+                    <input type="text" id="manual-meds" class="styled-input" placeholder="복용 약물" style="margin-bottom:0;">
+                </div>
+            </div>
+            
+            <div class="modal-btn-row" style="margin-top: 30px;">
+                <button class="btn-modal-action btn-cancel" onclick="closeModal('manual-register-modal')">취소</button>
+                <button class="btn-modal-action btn-confirm" style="background:var(--urgent-red);" onclick="submitManualRegister()">등록 및 생성</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 비디오 모달 -->
+    <div id="video-modal-overlay" class="modal-overlay" style="flex-direction:column; background:rgba(0,0,0,0.9);">
+        <div id="video-container">
+            <video id="video" autoplay playsinline></video>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+        <div style="color:white; margin-top:20px; font-size:1.2rem; font-weight:600;" id="modal-status">카메라 연결 중...</div>
+        <button class="btn-card" style="margin-top:20px; background:transparent; color:white; border-color:white;" onclick="closeVideoModal()">닫기</button>
+    </div>
+
+    <!-- 로딩 오버레이 -->
+    <div id="loading-overlay" onclick="this.style.display='none'">
+        <div class="spinner"></div>
+        <div style="font-size:1.2rem; font-weight:700; color:var(--text-color);">
+            Processing...
+        </div>
+    </div>
+
+    <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    let stream;
+    let currentPatientId = null;
+    let isRecognizing = false;
+
+    // 스플래시 스크린 자동 숨김
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if(splash) splash.style.display = 'none';
+        }, 3500);
+    });
+
+    function closeModal(id) { 
+        document.getElementById(id).style.display = 'none'; 
+    }
+    
+    function openIdInputModal() {
+        document.getElementById('input-patient-id').value = "";
+        document.getElementById('id-input-modal').style.display = 'flex';
+        document.getElementById('input-patient-id').focus();
+    }
+
+    function openManualRegisterModal() {
+        closeModal('id-input-modal');
+        document.getElementById('manual-register-modal').style.display = 'flex';
+    }
+
+    // [수정된 로직] ID 입력 -> 서버 확인 -> 결과에 따라 분기
+    async function verifyAndShowInfo() {
+        const val = document.getElementById('input-patient-id').value.trim();
+        if(!val) return alert("ID를 입력하세요.");
+        
+        // 로딩 시작
+        document.getElementById('loading-overlay').style.display = 'flex';
+
+        try {
+            // 서버에 ID 조회 요청 (백엔드에 /check_patient_id 엔드포인트 필요)
+            const response = await fetch('/check_patient_id', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ patient_id: val })
+            });
+
+            // 서버 응답 파싱
+            // 예상 응답 포맷: { status: 'success', name: '환자이름' } 또는 { status: 'error', message: '...' }
+            let data = null;
+            try {
+                data = await response.json();
+            } catch (e) {
+                // JSON 파싱 에러나면 더미 데이터 처리 하지 않고 에러로 간주하거나
+                // 테스트를 위해 에러 발생 시 throw
+                throw new Error("서버 응답 형식 오류");
+            }
+
+            document.getElementById('loading-overlay').style.display = 'none';
+
+            if (data && data.status === 'success') {
+                // 성공: ID가 존재함 -> 정보 표시 및 모달 이동
+                currentPatientId = val;
+                document.getElementById('confirm-id-text').innerText = "ID: " + currentPatientId;
+                document.getElementById('confirm-name-text').innerText = "이름: " + data.name; // 실제 이름 표시
+
+                closeModal('id-input-modal');
+                document.getElementById('info-confirm-modal').style.display = 'flex';
+            } else {
+                // 실패: ID가 존재하지 않음 -> 경고창 표시
+                alert("아이디 조회가 되지 않습니다. 아이디를 모르는 신규환자로 등록해주세요.");
+                // 모달을 닫지 않고 입력창에 머무르게 하거나, 필요시 수동 등록창으로 유도
+            }
+
+        } catch (error) {
+            document.getElementById('loading-overlay').style.display = 'none';
+            console.error("ID 조회 중 오류:", error);
+            // 백엔드가 없는 경우를 대비한 Fallback (테스트용)
+            // 실제 배포 시에는 이 부분을 제거하거나 사용자에게 네트워크 오류 알림
+            alert("서버 통신 중 오류가 발생했습니다. (백엔드 연결 확인 필요)");
+        }
+    }
+
+    function proceedToCamera() {
+        closeModal('info-confirm-modal');
+        startCamera('register');
+    }
+
+    async function submitManualRegister() {
+        const name = document.getElementById('manual-name').value || 'Unknown';
+        const gender = document.getElementById('manual-gender').value;
+        const birth = document.getElementById('manual-birth').value;
+        
+        const bloodABO = document.getElementById('manual-blood-abo').value;
+        const bloodRH = document.getElementById('manual-blood-rh').value;
+        const blood = bloodABO + bloodRH; 
+
+        const address = document.getElementById('manual-address').value || 'Unknown Address';
+        const city = document.getElementById('manual-city').value || 'Jeju';
+        const phone = document.getElementById('manual-phone').value || '';
+        const preg = document.getElementById('manual-preg').value;
+        const allergy = document.getElementById('manual-allergy').value;
+        const meds = document.getElementById('manual-meds').value;
+
+        document.getElementById('loading-overlay').style.display = 'flex';
+
+        try {
+            const res = await fetch('/create_fhir_patient', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    name: name, 
+                    gender: gender, 
+                    birthDate: birth, 
+                    city: city,
+                    bloodType: blood,
+                    pregnancyStatus: preg,
+                    allergies: allergy,
+                    medications: meds,
+                    address: address,
+                    phone: phone
+                })
+            });
+            const data = await res.json();
+            document.getElementById('loading-overlay').style.display = 'none';
+
+            if (data.status === 'success') {
+                closeModal('manual-register-modal');
+                currentPatientId = data.patient_id;
+                alert("환자 생성 완료! ID: " + currentPatientId);
+                startCamera('register');
+            } else {
+                alert("❌ 실패: " + data.message);
+            }
+        } catch (e) {
+            document.getElementById('loading-overlay').style.display = 'none';
+            console.error("서버 통신 에러 (데모 모드): " + e);
+            alert("서버 연결 실패. 데모 모드로 진행합니다.");
+            closeModal('manual-register-modal');
+            currentPatientId = "TEMP_" + Math.floor(Math.random()*1000);
+            startCamera('register');
+        }
+    }
+
+    async function startCamera(mode) {
+        if (stream) stopTracks();
+        document.getElementById('video-modal-overlay').style.display = 'flex';
+        document.getElementById('modal-status').innerText = "카메라 시작 중...";
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+            video.srcObject = stream;
+            video.onloadedmetadata = () => {
+                video.play();
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                if (mode === 'register') {
+                    captureRecursive(currentPatientId, 0, 30);
+                } else {
+                    isRecognizing = true;
+                    document.getElementById('modal-status').innerText = "얼굴 인식 중...";
+                    recognizeLoop();
+                }
+            };
+        } catch(e) { alert("카메라 오류: " + e); closeVideoModal(); }
+    }
+
+    function captureRecursive(pid, current, total) {
+        if (current >= total) {
+            document.getElementById('modal-status').innerText = "학습 요청 중...";
+            trainModel();
+            return;
+        }
+        if (!stream) return;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        fetch('/register_face', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ image: canvas.toDataURL('image/jpeg', 0.8), id: pid })
+        })
+        .then(r => r.json())
+        .then(d => {
+            document.getElementById('modal-status').innerText = `수집 중... ${current + 1} / ${total}`;
+            setTimeout(() => captureRecursive(pid, current + 1, total), 150);
+        })
+        .catch(() => {
+            setTimeout(() => captureRecursive(pid, current + 1, total), 150);
+        });
+    }
+
+    function recognizeLoop() {
+        if (!isRecognizing || !stream) return;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        fetch('/identify_face', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ image: canvas.toDataURL('image/jpeg', 0.7) })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "ok" && data.action === "redirect") {
+                window.location.href = "/view/patient/" + data.patient_id; 
+            }
+            setTimeout(recognizeLoop, 500);
+        })
+        .catch(e => setTimeout(recognizeLoop, 1000));
+    }
+
+    function closeVideoModal() {
+        stopTracks();
+        document.getElementById('video-modal-overlay').style.display = 'none';
+        isRecognizing = false;
+    }
+
+    function stopTracks() {
+        if (stream) {
+            stream.getTracks().forEach(t => t.stop());
+            stream = null;
+        }
+    }
+
+    function trainModel() {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'flex';
+
+        fetch('/train_model', { 
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+        .then(response => response.json())
+        .then(data => {
+            overlay.style.display = 'none';
+            if (data.status === 'success') {
+                alert("✅ 학습 완료!");
+                closeVideoModal();
+            } else {
+                alert("⚠️ " + data.message);
+                closeVideoModal();
+            }
+        })
+        .catch(error => {
+            overlay.style.display = 'none';
+            alert("학습 요청 완료 (서버 응답 없음)");
+            closeVideoModal();
+        });
+    }
+    </script>
+</body>
+  </html>
