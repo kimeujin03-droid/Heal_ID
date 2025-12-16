@@ -8,10 +8,7 @@ import sys
 
 # DB 설정 (Manager.py와 동일)
 DB_CONFIG = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': 'Hanyoon1*',
-    'database': 'heal_id'
+    
 }
 
 # 파일 경로 설정
@@ -108,4 +105,5 @@ if __name__ == "__main__":
         for pid in pids_to_delete:
             delete_patient_data(pid)
     else:
+
         print("ℹ️ 삭제할 ID가 입력되지 않았습니다. 프로그램을 종료합니다.")
