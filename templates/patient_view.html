@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Record View</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-body: #eaeff2;       
+            --bg-card: #ffffff;       
+            --primary-blue: #3498db;  
+            --text-main: #333333;     
+            --text-sub: #7f8c8d;      
+            --danger-color: #e74c3c;  
+            --success-color: #2ecc71; 
+            --card-radius: 16px;
+            --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: var(--bg-body);
+            margin: 0;
+            padding: 40px;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .main-container {
+            display: grid;
+            grid-template-columns: 340px 1fr 1fr;
+            grid-template-rows: auto auto 1fr;
+            gap: 24px;
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .card-box {
+            background: var(--bg-card);
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .card-header {
+            font-size: 1.1rem;
+            font-weight: 800; 
+            color: #444;      
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 2px solid #f0f0f0; 
+            padding-bottom: 8px;
+        }
+        .card-header i {
+            font-size: 1.1rem;
+            color: var(--primary-blue);
+            background: none; 
+            padding: 0;
+        }
+
+        .card-content {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            line-height: 1.5;
+            word-break: keep-all;
+        }
+
+        .profile-card {
+            grid-column: 1 / 2;
+            grid-row: 1 / 5;
+            text-align: center;
+            background: white;
+            align-items: center;
+        }
+
+        .static-profile-img {
+            width: 160px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+        }
+
+        .patient-name {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
+        .patient-id {
+            display: inline-block;
+            background: #f1f3f5;
+            color: #555;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .info-table {
+            width: 100%;
+            text-align: left;
+            margin-bottom: 20px;
+            border-top: 2px solid #f1f3f5;
+        }
+        .info-table th {
+            color: #868e96;
+            font-weight: 600;
+            font-size: 0.9rem;
+            width: 80px;
+            padding: 12px 5px;
+        }
+        .info-table td {
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 12px 5px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+
+        .btn-fhir {
+            margin-top: auto;
+            width: 100%;
+            padding: 15px;
+            background: #343a40; 
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+        .btn-fhir:hover { background: #212529; }
+
+        .warning-card {
+            grid-column: 2 / 4;
+            background: #fff5f5; 
+            border: 2px solid var(--danger-color);
+            display: none;
+        }
+        .warning-card .card-header { color: #444; border-bottom: 2px solid #f0f0f0; } 
+        .warning-card .card-header i { color: var(--danger-color); background: none; }
+        
+        .warning-list {
+            margin: 0; padding-left: 25px;
+            color: #c92a2a;
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+        .warning-list li { margin-bottom: 6px; }
+
+        .cond-card { grid-column: 2 / 3; }
+        .alg-card  { grid-column: 3 / 4; }
+        .alg-card .level-2 { color: #e67e22; font-weight: 800; }
+        .alg-card .level-3 { color: #c92a2a; font-weight: 800; }
+
+        .med-card  { grid-column: 2 / 4; }
+
+        .text-danger { color: var(--danger-color) !important; font-weight: 800 !important; }
+
+        @media (max-width: 1024px) {
+            .main-container { grid-template-columns: 1fr; }
+            .profile-card, .warning-card, .cond-card, .alg-card, .med-card { grid-column: auto; grid-row: auto; }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        
+        <div class="card-box profile-card">
+            <img src="/face_image/{{ pid }}" onerror="this.src='https://placehold.co/200x200?text=No+Image'" alt="Profile" class="static-profile-img">
+            
+            <div class="patient-name" id="patient-name">Loading...</div>
+            <div class="patient-id">ID: {{ pid }}</div>
+
+            <table class="info-table">
+                <tr><th>생년월일</th><td id="birth">-</td></tr>
+                <tr><th>성별</th><td id="gender">-</td></tr>
+                <tr><th>주소</th><td id="address">-</td></tr>
+                <tr><th>임신여부</th><td id="preg">-</td></tr>
+                <tr><th>혈액형</th><td id="blood">-</td></tr>
+            </table>
+            
+            <button class="btn-fhir" onclick="window.open('{{ target_url }}', '_blank')">
+                <i class="fas fa-database"></i> FHIR 서버 원본 확인
+            </button>
+        </div>
+
+        <div class="card-box warning-card" id="warning-area">
+            <div class="card-header"><i class="fas fa-exclamation-triangle"></i> 주요 경고 (WARNINGS)</div>
+            <ul class="warning-list" id="warning-list"></ul>
+        </div>
+
+        <div class="card-box cond-card">
+            <div class="card-header"><i class="fas fa-notes-medical"></i> 기저 질환</div>
+            <div id="cond" class="card-content">-</div>
+        </div>
+        <div class="card-box alg-card">
+            <div class="card-header"><i class="fas fa-allergies"></i> 알레르기</div>
+            <div id="alg" class="card-content">-</div>
+        </div>
+        <div class="card-box med-card">
+            <div class="card-header"><i class="fas fa-capsules"></i> 투약 정보 (Medication)</div>
+            <div id="med" class="card-content">-</div>
+        </div>
+
+    </div>
+
+    <script>
+        const pid = "{{ pid }}"; 
+
+        // [최적화] 1회만 로드 (5초마다 호출 제거)
+        window.addEventListener('load', async () => {
+            try {
+                await fetchPatientData();
+            } catch (error) {
+                console.error("초기화 실패:", error);
+            }
+        });
+
+        async function fetchPatientData() {
+            try {
+                const response = await fetch(`/api/proxy/patient/${pid}`);
+                if (!response.ok) return;
+                const data = await response.json();
+                renderData(data);
+            } catch (e) { 
+                console.error("환자 데이터 로드 실패:", e); 
+            }
+        }
+
+        function renderData(data) {
+            if(data.name && data.name[0]) {
+                const n = data.name[0];
+                document.getElementById('patient-name').textContent = n.text || `${n.family} ${n.given[0]}`;
+            }
+            document.getElementById('birth').textContent = data.birthDate || '-';
+            document.getElementById('gender').textContent = data.gender || '-';
+            if(data.address && data.address[0]) 
+                document.getElementById('address').textContent = data.address[0].city || '-';
+
+            let extMap = { blood: '-', preg: '-', allergy: '-', med: '-', cond: '-' };
+            if(data.extension) {
+                data.extension.forEach(e => {
+                    const val = e.valueString || '';
+                    if(e.url.includes('blood-type')) extMap.blood = val;
+                    if(e.url.includes('pregnancy')) extMap.preg = val;
+                    if(e.url.includes('allergy')) extMap.allergy = val;
+                    if(e.url.includes('medication')) extMap.med = val;
+                    if(e.url.includes('condition')) extMap.cond = val;
+                });
+            }
+
+            const bloodEl = document.getElementById('blood');
+            const pregEl = document.getElementById('preg');
+            
+            bloodEl.textContent = extMap.blood;
+            pregEl.textContent = extMap.preg;
+            document.getElementById('med').innerText = extMap.med;
+            document.getElementById('cond').innerText = extMap.cond;
+
+            // 알레르기 항목에 색상 적용
+            const allergyItems = extMap.allergy.split(',').map(item => item.trim()).filter(item => item);
+            const allergyHtml = allergyItems.map(item => {
+                const match = item.match(/(.+)\((\d+)\)/);
+                if (match) {
+                    const level = parseInt(match[2], 10);
+                    if (level === 2) return `<span class="level-2">${item}</span>`;
+                    if (level >= 3) return `<span class="level-3">${item}</span>`;
+                }
+                return item;
+            }).join(', ');
+            document.getElementById('alg').innerHTML = allergyHtml || '-';
+
+            if (extMap.preg.includes('임신') || extMap.preg.includes('pregnant')) {
+                pregEl.classList.add('text-danger');
+            } else {
+                pregEl.classList.remove('text-danger');
+            }
+
+            if (extMap.blood.includes('-')) {
+                bloodEl.classList.add('text-danger');
+            } else {
+                bloodEl.classList.remove('text-danger');
+            }
+
+            // 경고 메시지 생성
+            const warnings = [];
+
+            allergyItems.forEach(item => {
+                const match = item.match(/(.+)\((\d+)\)/);
+                if (match) {
+                    const allergen = match[1];
+                    const level = parseInt(match[2], 10);
+                    if (level === 1) {
+                        warnings.push(`${allergen}: 가벼운 알레르기 반응 주의`);
+                    } else if (level === 2) {
+                        warnings.push(`${allergen}: 중증 알레르기 반응 이력`);
+                    } else if (level >= 3) {
+                        warnings.push(`${allergen}: 아나필락시스 쇼크 위험`);
+                    }
+                }
+            });
+
+            if (extMap.preg.includes('임신') || extMap.preg.toLowerCase().includes('pregnant')) {
+                warnings.push('임산부 (약물 처방 주의)');
+            }
+            
+            if (extMap.blood.includes('-') || extMap.blood.toLowerCase().includes('rh-')) {
+                warnings.push('RH- 혈액형 (수혈 주의)');
+            }
+
+            const wArea = document.getElementById('warning-area');
+            if(warnings.length > 0) {
+                wArea.style.display = 'flex';
+                document.getElementById('warning-list').innerHTML = warnings
+                    .map(w => `<li>${w}</li>`)
+                    .join('');
+            } else {
+                wArea.style.display = 'none';
+            }
+        }
+
+    </script>
+</body>
+</html>
