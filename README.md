@@ -30,12 +30,11 @@
 
 ## 🛠️ System Architecture
 
-```mermaid
 graph LR
-    A[Emergency Scene\n(Camera/Tablet)] -->|Face Image| B(Heal ID Server\nFlask + OpenCV)
-    B -->|Identify ID| C{Local DB}
-    C -->|If Exists| D[Return Patient Info]
-    C -->|If New| E[Request to FHIR Server]
+    A["Emergency Scene\n(Camera/Tablet)"] -->|Face Image| B("Heal ID Server\nFlask + OpenCV")
+    B -->|Identify ID| C{"Local DB"}
+    C -->|If Exists| D["Return Patient Info"]
+    C -->|If New| E["Request to FHIR Server"]
     E -->|JSON Data| B
 💻 Tech Stack
 Backend: Python, Flask
