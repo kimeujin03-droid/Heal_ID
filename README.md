@@ -2,7 +2,7 @@
 
 # 🏥 Heal ID: Emergency Patient Identification System based on FHIR & Face Recognition
 
-> **🏆 ACK 2025 ETRI President's Award Winner (ETRI 원장상 수상작)** > **Capstone Design Project**
+> **🏆 ACK 2025 ETRI President's Award Winner** > **Capstone Design Project**
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/Flask-2.0-green.svg)
