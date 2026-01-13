@@ -70,13 +70,3 @@ Bash
 python app.py
 The server will start at http://0.0.0.0:5000.
 
-👨‍💻 Project Members
-So-yeon Kim
-
-Su-bin Bae
-
-Yu-jin Kim (Back-end & AI Development)
-
-Yu-rim Lee
-
-This project was developed for the Capstone Design course and demonstrated high reliability in non-contact identification scenarios.
