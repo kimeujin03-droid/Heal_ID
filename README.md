@@ -2,12 +2,6 @@
 
 # 🏥 Heal ID: Emergency Patient Identification System based on FHIR & Face Recognition
 
-> **🏆 ACK 2025 ETRI President's Award Winner** > **Capstone Design Project**
-
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![Flask](https://img.shields.io/badge/Flask-2.0-green.svg)
-![OpenCV](https://img.shields.io/badge/OpenCV-Face_Recognition-red.svg)
-![FHIR](https://img.shields.io/badge/Standard-HL7_FHIR-orange.svg)
 
 ## 📖 Overview
 [cite_start]**Heal ID** is a non-contact patient identification system designed to secure the **Golden Time** in emergency situations[cite: 12, 24].
